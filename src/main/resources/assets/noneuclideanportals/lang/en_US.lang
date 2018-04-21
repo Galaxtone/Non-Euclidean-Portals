@@ -1,3 +1,5 @@
 itemGroup.noneuclideanportals=Non-Euclidean Portals
 
+item.noneuclideanportals.wand.name=Portal Wand
+
 tile.noneuclideanportals.portal.name=Portal block
