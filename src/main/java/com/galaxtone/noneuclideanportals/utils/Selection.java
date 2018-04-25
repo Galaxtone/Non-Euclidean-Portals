@@ -1,5 +1,7 @@
 package com.galaxtone.noneuclideanportals.utils;
 
+import javax.annotation.Nonnull;
+
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing.Axis;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -12,28 +14,33 @@ public final class Selection {
 
 	private static final int limit = 8;
 
-	public ItemStack stack;
-	public BlockPos primaryPos;
-	public BlockPos secondaryPos;
-	public Axis prioritizedAxis;
+	private static ItemStack currentItem;
+	private static BlockPos primaryPos;
+	private static BlockPos secondaryPos;
+	private static Axis prioritizedAxis;
 
-	public AxisAlignedBB plane;
-	public Axis axis;
+	private static Selection current;
 
-	public static Selection instance = new Selection();
+	public final AxisAlignedBB plane;
+	public final Axis axis;
 	
-	private Selection() {
-		this.plane = null;
-		this.axis = null;
+	private Selection(@Nonnull AxisAlignedBB plane, @Nonnull Axis axis) {
+		this.plane = plane;
+		this.axis = axis;
 	}
 
-	public void cancel() {
-		this.stack = null;
-		this.primaryPos = null;
-		this.secondaryPos = null;
+	public static void stop() {
+		currentItem = null;
+		primaryPos = null;
+		secondaryPos = null;
+		prioritizedAxis = null;
 	}
 
-	public void recalculate() {
+	public static void update(BlockPos pos, Axis sideAxis) {
+		if (pos == secondaryPos && sideAxis == prioritizedAxis) return;
+		secondaryPos = pos;
+		prioritizedAxis = sideAxis;
+		
 		int minX = Math.min(primaryPos.getX(), secondaryPos.getX());
 		int minY = Math.min(primaryPos.getY(), secondaryPos.getY());
 		int minZ = Math.min(primaryPos.getZ(), secondaryPos.getZ());
@@ -63,7 +70,9 @@ public final class Selection {
 		}
 		
 		int least = Math.min(Math.min(width, length), height);
-		this.axis = prioritizedAxis;
+		
+		Axis axis = prioritizedAxis;
+		
 		if (prioritizedAxis == Axis.X && width == least) {
 			if (minX == primaryPos.getX()) maxX -= width;
 			else minX += width;
@@ -87,6 +96,19 @@ public final class Selection {
 			axis = Axis.Y;
 		}
 		
-		this.plane = new AxisAlignedBB(minX, minY, minZ, maxX, maxY, maxZ);
+		current = new Selection(new AxisAlignedBB(minX, minY, minZ, maxX, maxY, maxZ), axis);
+	}
+
+	public static ItemStack getCurrentItem() {
+		return currentItem;
+	}
+
+	public static Selection getCurrent() {
+		return current;
+	}
+
+	public static void start(ItemStack heldItem, BlockPos pos) {
+		currentItem = heldItem;
+		primaryPos = pos;
 	}
 }

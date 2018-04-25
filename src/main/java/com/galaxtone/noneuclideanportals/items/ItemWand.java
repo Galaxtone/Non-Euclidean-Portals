@@ -31,12 +31,12 @@ public class ItemWand extends ItemBase {
 		}
 		
 		if (stack == Selection.instance.stack) {
-			Selection.instance.cancel();
-
-			System.out.println(Selection.instance.plane);
+			Selection.stop();
+			
+			Selection current = Selection.getCurrent();
+			System.out.println(current.plane);
 		} else {
-			Selection.instance.stack = stack;
-			Selection.instance.primaryPos = pos;
+			Selection.start(stack, pos);
 		}
 		
         return EnumActionResult.PASS;

@@ -35,11 +35,14 @@ public class EventHandler {
 	@SideOnly(Side.CLIENT)
 	@SubscribeEvent
 	public static void renderWorld(RenderWorldLastEvent event) {
-		RenderHandler.calculateOffsets(event.getPartialTicks());
+		RenderHandler.update(event.getPartialTicks());
 		
-		ItemStack stack = Main.minecraft.thePlayer.getHeldItemMainhand();
-		if (stack == Selection.instance.stack) {
-			if (stack != null) RenderHandler.renderWandSelection();
-		} else if (Selection.instance.stack != null) Selection.instance.stack = null;
+		ItemStack heldItem = Main.minecraft.thePlayer.getHeldItemMainhand();
+		ItemStack currentItem = Selection.getCurrentItem();
+		if (currentItem != null) {
+			if (heldItem == currentItem) RenderHandler.renderWandSelection();
+			else Selection.stop();
+		}
+		
 	}
 }
