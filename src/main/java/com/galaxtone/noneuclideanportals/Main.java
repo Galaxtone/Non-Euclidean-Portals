@@ -22,6 +22,7 @@ public class Main {
 
 	public static final CreativeTabs creativeTab = new CreativeTabs(modid) {
 		@SideOnly(Side.CLIENT)
+		@Override
 		public Item getTabIconItem() {
 			return Register.wandItem;
 		}

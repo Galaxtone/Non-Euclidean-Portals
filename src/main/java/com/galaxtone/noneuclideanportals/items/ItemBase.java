@@ -8,14 +8,10 @@ import net.minecraft.item.Item;
 
 public class ItemBase extends Item {
 
-	public final String oreId;
-
 	public ItemBase(String name, @Nullable String oreId) {
 		this.setUnlocalizedName(Main.modid + "." + name);
 		this.setRegistryName(Main.modid + ":" + name);
 		this.setCreativeTab(Main.creativeTab);
-		
-		this.oreId = oreId;
 	}
 
 	public ItemBase(String name) {
