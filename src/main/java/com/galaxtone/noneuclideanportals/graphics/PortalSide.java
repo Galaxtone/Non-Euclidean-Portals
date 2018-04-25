@@ -10,7 +10,6 @@ public class PortalSide {
 	public final Portal portal;
 	public PortalSide destination;
 
-	public final AxisAlignedBB portalPlane;
 	public final AxisAlignedBB flatPlane;
 	public final AxisAlignedBB scanPlane;
 
@@ -18,16 +17,15 @@ public class PortalSide {
 		this.direction = direction;
 		this.portal = portal;
 		
-		this.portalPlane = portal.plane;
 		if (portal.axis == Axis.X) {
-			this.flatPlane = this.portalPlane.expand(-0.5, 0, 0).offset(-direction.getOffset()/2, 0, 0);
-			this.scanPlane = this.portalPlane.addCoord(3, 0, 0);
+			this.flatPlane = this.portal.plane.expand(-0.5, 0, 0).offset(-0.5*direction.getOffset(), 0, 0);
+			this.scanPlane = this.portal.plane.addCoord(3, 0, 0);
 		} else if (portal.axis == Axis.Y) {
-			this.flatPlane = this.portalPlane.expand(0, -0.5, 0).offset(-direction.getOffset()/2, 0, 0);
-			this.scanPlane = this.portalPlane.addCoord(0, 3, 0);
+			this.flatPlane = this.portal.plane.expand(0, -0.5, 0).offset(0, -0.5*direction.getOffset(), 0);
+			this.scanPlane = this.portal.plane.addCoord(0, 3, 0);
 		} else if (portal.axis == Axis.Z) {
-			this.flatPlane = this.portalPlane.expand(0, 0, -0.5).offset(-direction.getOffset()/2, 0, 0);
-			this.scanPlane = this.portalPlane.addCoord(0, 0, 3);
+			this.flatPlane = this.portal.plane.expand(0, 0, -0.5).offset(0, 0, -0.5*direction.getOffset());
+			this.scanPlane = this.portal.plane.addCoord(0, 0, 3);
 		} else throw new IllegalArgumentException("Portal axis is null, If you see this please report it to the mod author.");
 	}
 }

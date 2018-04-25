@@ -1,21 +1,19 @@
 package com.galaxtone.noneuclideanportals.graphics;
 
+import com.galaxtone.noneuclideanportals.WorldData;
 import com.galaxtone.noneuclideanportals.utils.Selection;
 
-import net.minecraft.client.renderer.culling.Frustum;
-import net.minecraft.client.renderer.culling.ICamera;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.EnumFacing.Axis;
 import net.minecraft.util.EnumFacing.AxisDirection;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class Portal {
 
-	public final int id;
+	public final short id;
 
 	public World world;
 
@@ -26,7 +24,6 @@ public class Portal {
 	public final Axis axis;
 
 	public Portal(World world, Selection selection) {
-		if (selection.plane == null || selection.axis == null) throw new IllegalArgumentException("Selection's values cannot be null");
 		this.world = world;
 		
 		this.plane = selection.plane;
@@ -34,20 +31,20 @@ public class Portal {
 		
 		this.frontSide = new PortalSide(AxisDirection.POSITIVE, this);
 		this.backSide = new PortalSide(AxisDirection.NEGATIVE, this);
-	}
-
-	public PortalSide getSideFromDirection(AxisDirection direction) {
-		if (direction == AxisDirection.POSITIVE) return frontSide;
-		else if (direction == AxisDirection.NEGATIVE) return backSide;
-		return null;
-	}
-
-	@SideOnly(Side.CLIENT)
-	public void render(PortalSide portal, float partialTicks) {
-		ICamera camera = new Frustum();
-		if (!camera.isBoundingBoxInFrustum(portal.flatPlane)) return;
 		
-		// TODO https://cdn.discordapp.com/attachments/294069306608582656/436437528728567809/unknown.png
+		WorldData data = WorldData.get(world);
+		this.id = (short) data.portals.size();
+		data.portals.add(this);
+	}
+
+	public PortalSide getSideFromEntity(Entity entity) {
+		Vec3d pos = entity.getPositionVector();
+		if (this.axis == Axis.X && pos.xCoord < this.plane.minX + 0.5 ||
+				this.axis == Axis.Y && pos.yCoord < this.plane.minY + 0.5 ||
+				this.axis == Axis.Z && pos.zCoord < this.plane.minZ + 0.5) {
+				return this.backSide;
+		}
+		return this.frontSide;
 	}
 
 	public void update(PortalSide portal) {

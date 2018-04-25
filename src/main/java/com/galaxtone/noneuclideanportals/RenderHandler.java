@@ -1,12 +1,19 @@
 package com.galaxtone.noneuclideanportals;
 
+import java.nio.FloatBuffer;
+
 import org.lwjgl.opengl.GL11;
 
+import com.galaxtone.noneuclideanportals.graphics.Portal;
+import com.galaxtone.noneuclideanportals.graphics.PortalSide;
 import com.galaxtone.noneuclideanportals.utils.Selection;
 
+import net.minecraft.client.renderer.GLAllocation;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.VertexBuffer;
+import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.culling.ICamera;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.EnumFacing.Axis;
@@ -22,6 +29,7 @@ public class RenderHandler {
 	private static final Tessellator tessellator = Tessellator.getInstance();
 	private static final VertexBuffer buffer = tessellator.getBuffer();
 
+	public static final FloatBuffer projectionMatrixBuffer = GLAllocation.createDirectFloatBuffer(16);
 
 	private static Entity renderEntity;
 	private static Vec3d offset;
@@ -116,46 +124,52 @@ public class RenderHandler {
 	}
 
 	@SuppressWarnings("unused")
+	public static void renderPortals() {
 		if (true) return;
 		
-		GlStateManager.disableTexture2D();
-		
-		GL11.glEnable(GL11.GL_STENCIL_TEST);
-		
-		GL11.glStencilMask(0xFF);
-		GL11.glDisable(GL11.GL_SCISSOR_TEST);
-		GL11.glClear(GL11.GL_STENCIL_BUFFER_BIT);
-		
-		GL11.glStencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_REPLACE);
-		GL11.glStencilFunc(GL11.GL_ALWAYS, 1, 0xFF);
-		GL11.glStencilMask(0xFF);
-		
-		GL11.glColorMask(false, false, false, false);
-		GL11.glDisable(GL11.GL_DEPTH_TEST);
-		
-		GL11.glBegin(GL11.GL_QUADS);
-		GL11.glVertex3d(-0.5, 1, 4);
-		GL11.glVertex3d(-0.5, 2, 4);
-		GL11.glVertex3d(0.5, 2, 4);
-		GL11.glVertex3d(0.5, 1, 4);
-		GL11.glEnd();
-		
-		GL11.glColorMask(true, true, true, true);
-		GL11.glEnable(GL11.GL_DEPTH_TEST);
-		
-		GL11.glStencilMask(0x00);
-		GL11.glStencilFunc(GL11.GL_NOTEQUAL, 1, 0xFF);
-		
-		GL11.glColor3d(1.0, 0.0, 0.0);
-		GL11.glBegin(GL11.GL_QUADS);
-		GL11.glVertex3d(-1 - offsetX, 200 - offsetY, 5 - offsetZ);
-		GL11.glVertex3d(-1 - offsetX, 203 - offsetY, 5 - offsetZ);
-		GL11.glVertex3d(1 - offsetX, 203 - offsetY, 5 - offsetZ);
-		GL11.glVertex3d(1 - offsetX, 200 - offsetY, 5 - offsetZ);
-		GL11.glEnd();
-		
-		GL11.glDisable(GL11.GL_STENCIL_TEST);
-		GL11.glDisable(GL11.GL_CULL_FACE);
-		GlStateManager.enableTexture2D();
+		WorldData data = WorldData.get(renderEntity.worldObj);
+		for (Portal portal : data.portals) {
+			PortalSide side = portal.getSideFromEntity(renderEntity);
+			//if (side.destination == null) continue;
+			
+			ICamera camera = new Frustum();
+			if (!camera.isBoundingBoxInFrustum(portal.plane)) continue;
+			
+			
+			
+			/*GlStateManager.colorMask(false, false, false, false);
+			GlStateManager.depthMask(false);
+			GlStateManager.disableDepth();
+			
+			GL11.glEnable(GL11.GL_STENCIL_TEST);
+			
+			GL11.glStencilFunc(GL11.GL_NOTEQUAL, recursionLevel, mask);
+			GL11.glStencilOp(GL11.GL_INCR, GL11.GL_KEEP, GL11.GL_KEEP);
+			GL11.glStencilMask(0xFF);
+			
+			GlStateManager.getFloat(GL11.GL_PROJECTION_MATRIX, projectionMatrixBuffer);
+			
+			Matrix4f projMat = (Matrix4f) new Matrix4f().load(projectionMatrixBuffer.asReadOnlyBuffer());
+			
+			Quaternion clip = new Quaternion();
+			Quaternion quat = new Quaternion();
+			quat.x = (Math.signum(clip.x) + projMat.m20) / projMat.m00;
+			quat.y = (Math.signum(clip.y) + projMat.m21) / projMat.m11;
+			quat.z = -1.0F;
+			quat.w = (1.0F + projMat.m22) / projMat.m23;
+
+			float dot = 2f / Quaternion.dot(clip, quat);
+			projMat.m02 = clip.x * dot;
+			projMat.m12 = clip.y * dot;
+			projMat.m22 = clip.z * dot + 1F;
+			projMat.m32 = 1f;
+		    
+			projMat.store(projectionMatrixBuffer);
+			
+			GlStateManager.matrixMode(GL11.GL_PROJECTION);
+			GL11.glLoadMatrix(projectionMatrixBuffer.asReadOnlyBuffer());
+			// TODO https://cdn.discordapp.com/attachments/294069306608582656/436437528728567809/unknown.png
+			// Draw 5 quads based on portal plane, axis and portal side direction.*/
+		}
 	}
 }

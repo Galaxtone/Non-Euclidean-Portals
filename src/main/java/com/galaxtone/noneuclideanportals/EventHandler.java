@@ -44,5 +44,6 @@ public class EventHandler {
 			else Selection.stop();
 		}
 		
+		RenderHandler.renderPortals();
 	}
 }
