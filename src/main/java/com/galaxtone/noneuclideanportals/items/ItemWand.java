@@ -1,5 +1,7 @@
 package com.galaxtone.noneuclideanportals.items;
 
+import com.galaxtone.noneuclideanportals.WorldData;
+import com.galaxtone.noneuclideanportals.graphics.Portal;
 import com.galaxtone.noneuclideanportals.utils.Selection;
 
 import net.minecraft.entity.player.EntityPlayer;
@@ -30,11 +32,12 @@ public class ItemWand extends ItemBase {
 			return EnumActionResult.FAIL;
 		}
 		
-		if (stack == Selection.instance.stack) {
+		if (stack == Selection.getCurrentItem()) {
 			Selection.stop();
 			
-			Selection current = Selection.getCurrent();
-			System.out.println(current.plane);
+			WorldData data = WorldData.get(world);
+			Portal.create(data);
+			data.markDirty();
 		} else {
 			Selection.start(stack, pos);
 		}

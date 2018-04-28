@@ -15,41 +15,46 @@ public class Portal {
 
 	public final short id;
 
-	public World world;
-
 	public final PortalSide frontSide;
 	public final PortalSide backSide;
 
 	public final AxisAlignedBB plane;
 	public final Axis axis;
 
-	public Portal(World world, Selection selection) {
-		this.world = world;
-		
-		this.plane = selection.plane;
-		this.axis = selection.axis;
+	private Portal(WorldData data, AxisAlignedBB plane, Axis axis) {
+		this.plane = plane;
+		this.axis = axis;
 		
 		this.frontSide = new PortalSide(AxisDirection.POSITIVE, this);
 		this.backSide = new PortalSide(AxisDirection.NEGATIVE, this);
 		
-		WorldData data = WorldData.get(world);
 		this.id = (short) data.portals.size();
 		data.portals.add(this);
 	}
 
-	public PortalSide getSideFromEntity(Entity entity) {
-		Vec3d pos = entity.getPositionVector();
-		if (this.axis == Axis.X && pos.xCoord < this.plane.minX + 0.5 ||
-				this.axis == Axis.Y && pos.yCoord < this.plane.minY + 0.5 ||
-				this.axis == Axis.Z && pos.zCoord < this.plane.minZ + 0.5) {
-				return this.backSide;
-		}
-		return this.frontSide;
+	public static void create(WorldData data) {
+		Selection current = Selection.getCurrent();
+		new Portal(data, current.plane, current.axis);
 	}
 
-	public void update(PortalSide portal) {
-		for (Entity entity : this.world.getEntitiesWithinAABB(Entity.class, portal.scanPlane)) {
-			if (entity instanceof EntityPlayerMP && !this.world.isRemote) continue;
+	public static void create(WorldData data, AxisAlignedBB plane, Axis axis) {
+		new Portal(data, plane, axis);
+	}
+
+	public PortalSide getSideFromDirection(AxisDirection direction) {
+		return direction == AxisDirection.POSITIVE ? this.frontSide : this.backSide;
+	}
+
+	public PortalSide getSideFromEntity(Entity entity) {
+		Vec3d pos = entity.getPositionVector();
+		return this.axis == Axis.X && pos.xCoord > this.plane.minX + 0.5 ||
+				this.axis == Axis.Y && pos.yCoord > this.plane.minY + 0.5 ||
+				this.axis == Axis.Z && pos.zCoord > this.plane.minZ + 0.5 ? this.frontSide : this.backSide;
+	}
+
+	public void update(World world, PortalSide portal) {
+		for (Entity entity : world.getEntitiesWithinAABB(Entity.class, portal.scanPlane)) {
+			if (entity instanceof EntityPlayerMP && !world.isRemote) continue;
 			
 		}
 	}

@@ -5,15 +5,12 @@ import java.nio.FloatBuffer;
 import org.lwjgl.opengl.GL11;
 
 import com.galaxtone.noneuclideanportals.graphics.Portal;
-import com.galaxtone.noneuclideanportals.graphics.PortalSide;
 import com.galaxtone.noneuclideanportals.utils.Selection;
 
 import net.minecraft.client.renderer.GLAllocation;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.VertexBuffer;
-import net.minecraft.client.renderer.culling.Frustum;
-import net.minecraft.client.renderer.culling.ICamera;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.EnumFacing.Axis;
@@ -123,19 +120,45 @@ public class RenderHandler {
 		GlStateManager.enableTexture2D();
 	}
 
-	@SuppressWarnings("unused")
-	public static void renderPortals() {
-		if (true) return;
-		
+	public static void renderPortals() { /* Yo, this is not finished therefore not functional */
 		WorldData data = WorldData.get(renderEntity.worldObj);
+		//System.out.println(data.portals.size());
 		for (Portal portal : data.portals) {
-			PortalSide side = portal.getSideFromEntity(renderEntity);
+			//PortalSide side = portal.getSideFromEntity(renderEntity);
+			//System.out.println(portal.plane);
 			//if (side.destination == null) continue;
 			
-			ICamera camera = new Frustum();
-			if (!camera.isBoundingBoxInFrustum(portal.plane)) continue;
+			double x = portal.plane.minX - offset.xCoord;
+			double y = portal.plane.minY - offset.yCoord;
+			double z = portal.plane.minZ - offset.zCoord;
+			double x2 = portal.plane.maxX - offset.xCoord;
+			double y2 = portal.plane.maxY - offset.yCoord;
+			double z2 = portal.plane.maxZ - offset.zCoord;
 			
+			GlStateManager.disableCull();
+			GlStateManager.disableTexture2D();
 			
+			GlStateManager.color(0F, 0F, 0F);
+			buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION);
+			if (portal.axis == Axis.X) {
+				buffer.pos(x, y, z2).endVertex();
+				buffer.pos(x, y2, z2).endVertex();
+				buffer.pos(x, y2, z).endVertex();
+				buffer.pos(x, y, z).endVertex();
+			} else if (portal.axis == Axis.Z) {
+				buffer.pos(x2, y, z2).endVertex();
+				buffer.pos(x2, y2, z2).endVertex();
+				buffer.pos(x, y2, z2).endVertex();
+				buffer.pos(x, y, z2).endVertex();
+			} else if (portal.axis == Axis.Y) {
+				buffer.pos(x, y, z).endVertex();
+				buffer.pos(x2, y, z).endVertex();
+				buffer.pos(x2, y, z2).endVertex();
+				buffer.pos(x, y, z2).endVertex();
+			}
+			tessellator.draw();
+			
+			GlStateManager.enableTexture2D();
 			
 			/*GlStateManager.colorMask(false, false, false, false);
 			GlStateManager.depthMask(false);
@@ -157,7 +180,7 @@ public class RenderHandler {
 			quat.y = (Math.signum(clip.y) + projMat.m21) / projMat.m11;
 			quat.z = -1.0F;
 			quat.w = (1.0F + projMat.m22) / projMat.m23;
-
+			
 			float dot = 2f / Quaternion.dot(clip, quat);
 			projMat.m02 = clip.x * dot;
 			projMat.m12 = clip.y * dot;
