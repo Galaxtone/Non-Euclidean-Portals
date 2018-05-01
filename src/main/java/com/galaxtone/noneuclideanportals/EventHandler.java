@@ -46,12 +46,17 @@ public class EventHandler {
 		RenderHandler.update(event.getPartialTicks());
 		
 		ItemStack heldItem = Main.minecraft.thePlayer.getHeldItemMainhand();
+		boolean flag = heldItem != null && heldItem.getItem() == Register.wandItem;
+		
+		if (flag) Selection.updatePortalSelection();
+		RenderHandler.renderPortals(flag);
+		
 		ItemStack currentItem = Selection.getCurrentItem();
 		if (currentItem != null) {
-			if (heldItem == currentItem) RenderHandler.renderWandSelection();
-			else Selection.stop();
+			if (heldItem == currentItem) {
+				Selection.updateBlockSelection();
+				RenderHandler.renderBlockSelection();
+			} else Selection.stop();
 		}
-		
-		RenderHandler.renderPortals();
 	}
 }
