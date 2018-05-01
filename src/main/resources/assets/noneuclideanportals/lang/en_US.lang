@@ -1,5 +1,11 @@
-itemGroup.noneuclideanportals=Non-Euclidean Portals
+tile.noneuclideanportals.portal.name=Portal block
 
 item.noneuclideanportals.wand.name=Portal Wand
 
-tile.noneuclideanportals.portal.name=Portal block
+itemGroup.noneuclideanportals=Non-Euclidean Portals
+
+config.noneuclideanportals.title=Non-Euclidean Portals Configuration
+config.noneuclideanportals.general.title=General
+config.noneuclideanportals.general.reach_distance=Reach distance
+config.noneuclideanportals.rendering.title=Rendering
+config.noneuclideanportals.rendering.max_recursive_limit=Max recursive limit
