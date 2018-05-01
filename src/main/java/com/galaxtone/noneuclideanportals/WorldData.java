@@ -68,9 +68,6 @@ public class WorldData extends WorldSavedData {
 
 	@Override
 	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-		for (int i = 0; i < 50; i++) {
-			System.out.println("INTENSE SEXUAL GROAN AAAAAAAH MAKE ME FEEL LOVED SENPAI MORE INTENSE SEXUAL GROANS P%O@#%((G$*G#GHV#O*G$YOHEHIC@Y#*V@#($V#JEIQF$E");
-		}
 		NBTTagList portalsTag = new NBTTagList();
 		for (Portal portal : this.portals) {
 			NBTTagCompound portalTag = new NBTTagCompound();
