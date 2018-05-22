@@ -2,7 +2,7 @@
     {
         "modid": "noneuclideanportals",
         "name": "Non-Euclidean Portals",
-        "description": "This mod adds a creative-only wand that allows the creation of world-portals that can be used to create mindmelting maps",
+        "description": "This mod allows map makers to create maps using the wand item to create non-euclidean maps.",
         "version": "${version}",
         "mcversion": "${mcversion}",
         "authorList": [

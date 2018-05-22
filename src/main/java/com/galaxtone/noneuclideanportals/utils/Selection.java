@@ -1,11 +1,8 @@
 package com.galaxtone.noneuclideanportals.utils;
 
-import javax.annotation.Nonnull;
-
 import com.galaxtone.noneuclideanportals.Main;
-import com.galaxtone.noneuclideanportals.RenderHandler;
-import com.galaxtone.noneuclideanportals.graphics.Portal;
-import com.galaxtone.noneuclideanportals.graphics.PortalSide;
+import com.galaxtone.noneuclideanportals.Portal;
+import com.galaxtone.noneuclideanportals.graphics.RenderHandler;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing.Axis;
@@ -18,29 +15,19 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 @SideOnly(Side.CLIENT)
 public final class Selection {
 
-	public enum Type {
-		NONE,
-		PORTAL,
-		BLOCK
-	}
-
-	private static final int limit = 8;
-
-	private static Type type = Type.NONE;
-
 	private static ItemStack currentItem;
 	private static BlockPos primaryPos;
 	private static BlockPos secondaryPos;
 	private static Axis prioritizedAxis;
 
-	private static PortalSide portal;
+	private static Portal.Side portal;
 
 	private static Selection current;
 
 	public final AxisAlignedBB plane;
 	public final Axis axis;
 	
-	private Selection(@Nonnull AxisAlignedBB plane, @Nonnull Axis axis) {
+	private Selection(AxisAlignedBB plane, Axis axis) {
 		this.plane = plane;
 		this.axis = axis;
 	}
@@ -53,7 +40,7 @@ public final class Selection {
 	}
 
 	public static void updatePortalSelection() {
-		portal = Portal.getClosestHoveredPortal();
+		portal = Portal.getClosestSide();
 	}
 
 	public static void updateBlockSelection() {
@@ -75,6 +62,8 @@ public final class Selection {
 		int width = maxX - minX;
 		int height = maxY - minY;
 		int length = maxZ - minZ;
+		
+		int limit = Main.config.getSelectionLimit();
 		
 		int widthOffset = limit - width;
 		int heightOffset = limit - height;
@@ -123,12 +112,9 @@ public final class Selection {
 		current = new Selection(new AxisAlignedBB(minX, minY, minZ, maxX, maxY, maxZ), axis);
 	}
 
-	public static Type getType() {
-		return type;
-	}
-
-	public static void setType(@Nonnull Type newType) {
-		type = newType;
+	public static void start(ItemStack heldItem, BlockPos pos) {
+		currentItem = heldItem;
+		primaryPos = pos;
 	}
 
 	public static ItemStack getCurrentItem() {
@@ -139,12 +125,7 @@ public final class Selection {
 		return current;
 	}
 
-	public static PortalSide getPortal() {
+	public static Portal.Side getPortal() {
 		return portal;
-	}
-
-	public static void start(ItemStack heldItem, BlockPos pos) {
-		currentItem = heldItem;
-		primaryPos = pos;
 	}
 }
