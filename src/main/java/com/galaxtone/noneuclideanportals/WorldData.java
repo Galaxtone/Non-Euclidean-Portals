@@ -1,96 +1,127 @@
 package com.galaxtone.noneuclideanportals;
 
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 
-import com.galaxtone.noneuclideanportals.graphics.Portal;
-import com.galaxtone.noneuclideanportals.utils.PortalReference;
+import com.galaxtone.noneuclideanportals.Portal.Reference;
+import com.galaxtone.noneuclideanportals.network.PacketPortal;
 
+import io.netty.buffer.Unpooled;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumFacing.Axis;
-import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.EnumFacing.AxisDirection;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldSavedData;
 import net.minecraft.world.storage.MapStorage;
 
 public class WorldData extends WorldSavedData {
 
-	public List<Portal> portals = Collections.synchronizedList(new LinkedList<Portal>());
 	public WorldData(String name) {
 		super(name);
 	}
 
 	@Override
 	public void readFromNBT(NBTTagCompound compound) {
-		portals.removeAll(null);
+		Portal.list.removeAll(Portal.list);
+		
 		NBTTagList portalsTag = compound.getTagList("portals", 10);
+		int tagCount = portalsTag.tagCount();
+		
+		int[] skipTable = new int[tagCount];
+		int skipped = 0;
+		
+		for (int i = 0; i < tagCount; i++) {
+			NBTTagCompound portalTag = portalsTag.getCompoundTagAt(i);
+			
+			PacketBuffer buffer = new PacketBuffer(Unpooled.buffer());
 
-		PortalReference[] frontSidePortals = new PortalReference[portals.size()];
-		PortalReference[] backSidePortals = new PortalReference[portals.size()];
-		for (int i = 0; i < portalsTag.tagCount(); i++) {
-			NBTTagCompound portalTag  = portalsTag.getCompoundTagAt(i);
+			buffer.writeInt(portalTag.getInteger("X"));
+			buffer.writeInt(portalTag.getInteger("Y"));
+			buffer.writeInt(portalTag.getInteger("Z"));
 
-			int minX = portalTag.getInteger("X");
-			int minY = portalTag.getInteger("Y");
-			int minZ = portalTag.getInteger("Z");
-			
-			Axis axis = EnumFacing.getFront(portalTag.getByte("axis") * 2).getAxis();
-			int width = portalTag.getInteger("width");
-			int height = portalTag.getInteger("height");
-			
-			int sizeX = 1;
-			int sizeY = 1;
-			int sizeZ = 1;
-			
-			if (axis == Axis.X) sizeZ = width;
-			else sizeX = width;
-			if (axis == Axis.Y) sizeZ = height;
-			else sizeY = height;
-			
-			
-			Portal.create(this, new AxisAlignedBB(minX, minY, minZ, minX + sizeX, minY + sizeY, sizeZ), axis);
+			buffer.writeByte(portalTag.getByte("axis"));
+			buffer.writeByte(portalTag.getByte("width"));
+			buffer.writeByte(portalTag.getByte("height"));
 
-			frontSidePortals[i] = new PortalReference(portalTag.getCompoundTag("front"));
-			backSidePortals[i] = new PortalReference(portalTag.getCompoundTag("back"));
+			NBTTagCompound frontTag = portalTag.getCompoundTag("front");
+			NBTTagCompound backTag = portalTag.getCompoundTag("front");
+
+			buffer.writeByte(frontTag.getByte("direction"));
+			buffer.writeByte(backTag.getByte("direction"));
+
+			buffer.writeShort(frontTag.getShort("id"));
+			buffer.writeShort(backTag.getShort("id"));
+			
+			skipTable[i] = skipped;
+			
+			try {
+				Portal portal = PacketPortal.readPortal(buffer);
+				
+				portal.index = Portal.list.size();
+				Portal.list.add(portal);
+			} catch (Exception exception) {
+				Main.logger.warn("Invalid portal NBT data (#%d): %s", i, exception.getMessage());
+				
+				skipTable[i] = -1;
+				skipped++;
+				
+				continue;
+			}
 		}
 		
-		Iterator<Portal> portalsIter = portals.iterator();
-		for (int i = 0; portalsIter.hasNext(); i++) {
-			Portal portal = portalsIter.next();
-			frontSidePortals[i].to(this, portal.frontSide);
-			backSidePortals[i].to(this, portal.backSide);
+		Iterator<Portal> iterator = Portal.list.iterator();
+		while (iterator.hasNext()) {
+			Portal portal = (Portal) iterator.next();
+			
+			if (portal.front.reference != null) {
+				int frontId = portal.front.reference.index;
+				if (skipTable[frontId] > 0 && frontId < tagCount) {
+					Reference.create(portal.front, AxisDirection.POSITIVE, frontId - skipTable[frontId]);
+				} else {
+					portal.front.reference = null;
+				}
+			}
+			
+			if (portal.back.reference != null) {
+				int backId = portal.back.reference.index;
+				if (backId < tagCount) {
+					Reference.create(portal.back, AxisDirection.NEGATIVE, backId - skipTable[backId]);
+				} else {
+					portal.back.reference = null;
+				}
+			}
 		}
 	}
 
 	@Override
 	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
 		NBTTagList portalsTag = new NBTTagList();
-		for (Portal portal : this.portals) {
+		for (Portal portal : Portal.list) {
+			PacketBuffer buffer = new PacketBuffer(Unpooled.buffer());
+			PacketPortal.writePortal(buffer, portal);
+			
 			NBTTagCompound portalTag = new NBTTagCompound();
-			portalTag.setInteger("X", (int) portal.plane.minX);
-			portalTag.setInteger("Y", (int) portal.plane.minY);
-			portalTag.setInteger("Z", (int) portal.plane.minZ);
+			portalTag.setInteger("X", buffer.readInt());
+			portalTag.setInteger("Y", buffer.readInt());
+			portalTag.setInteger("Z", buffer.readInt());
 			
-			double length = portal.plane.maxZ - portal.plane.minX;
-			portalTag.setByte("axis", (byte) portal.axis.ordinal());
-			portalTag.setByte("width", (byte) (portal.axis == Axis.X ? length : portal.plane.maxX - portal.plane.minX));
-			portalTag.setByte("height", (byte) (portal.axis == Axis.X ? length : portal.plane.maxY - portal.plane.minY));
+			portalTag.setByte("axis", buffer.readByte());
+			portalTag.setByte("width", buffer.readByte());
+			portalTag.setByte("height", buffer.readByte());
 			
-			NBTTagCompound frontSideTag = new NBTTagCompound();
-			NBTTagCompound backSideTag = new NBTTagCompound();
+			NBTTagCompound frontTag = new NBTTagCompound();
+			NBTTagCompound backTag = new NBTTagCompound();
 			
-			new PortalReference(portal.frontSide).to(frontSideTag);
-			new PortalReference(portal.backSide).to(backSideTag);
+			frontTag.setByte("direction", buffer.readByte());
+			backTag.setByte("direction", buffer.readByte());
 			
-			portalTag.setTag("front", frontSideTag);
-			portalTag.setTag("back", backSideTag);
-			portalsTag.appendTag(portalTag);
+			frontTag.setShort("id", buffer.readShort());
+			backTag.setShort("id", buffer.readShort());
+			
+			portalTag.setTag("front", frontTag);
+			portalTag.setTag("back", backTag);
 		}
-
+		
 		compound.setTag("portals", portalsTag);
 		return compound;
 	}
