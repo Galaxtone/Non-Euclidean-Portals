@@ -43,18 +43,20 @@ public class Main {
 
 	public static Config config;
 
-	@SideOnly(Side.CLIENT)
 	public static final Logger logger = LogManager.getLogger(Main.modid);
 
 	@EventHandler
 	public static void init(FMLPreInitializationEvent event) {
-		Framebuffer buffer = minecraft.getFramebuffer();
-		if (!buffer.isStencilEnabled()) buffer.enableStencil();
 		network.registerMessage(PacketPortal.Handler.class, PacketPortal.class, 0, Side.CLIENT);
 		network.registerMessage(PacketPortal.Handler.class, PacketPortal.class, 1, Side.SERVER);
 		
 		NetworkRegistry.INSTANCE.registerGuiHandler(instance, new GuiHandler());
 		
+		if (event.getSide() == Side.CLIENT) {
+			Framebuffer buffer = Minecraft.getMinecraft().getFramebuffer();
+			if (!buffer.isStencilEnabled()) buffer.enableStencil();
+		}
+
 		config = new Config(event.getModConfigurationDirectory());
 	}
 }
