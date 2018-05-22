@@ -4,8 +4,11 @@ item.noneuclideanportals.wand.name=Portal Wand
 
 itemGroup.noneuclideanportals=Non-Euclidean Portals
 
-config.noneuclideanportals.title=Non-Euclidean Portals Configuration
+config.noneuclideanportals.title=%s Configuration
 config.noneuclideanportals.general.title=General
 config.noneuclideanportals.general.reach_distance=Reach distance
 config.noneuclideanportals.rendering.title=Rendering
 config.noneuclideanportals.rendering.max_recursive_limit=Max recursive limit
+
+text.noneuclideanportals.permission=§cYou do not have permission to use this item.
+text.noneculideanportals.hacker=§cPesky hackers, You need to be opped for the server to accept portal packets.
