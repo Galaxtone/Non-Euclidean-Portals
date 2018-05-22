@@ -14,8 +14,6 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 @Mod(modid = Main.modid, name = Main.name, version = Main.version, guiFactory = Main.guiFactory)
 public class Main {
 
-	public static final Minecraft minecraft = Minecraft.getMinecraft();
-
 	public static final String modid = "noneuclideanportals";
 	public static final String name = "Non-Euclidean Portals";
 	public static final String version = "0.3";
@@ -25,7 +23,7 @@ public class Main {
 		@SideOnly(Side.CLIENT)
 		@Override
 		public Item getTabIconItem() {
-			return Register.wandItem;
+			return ItemWand.instance;
 		}
 	};
 
@@ -37,6 +35,8 @@ public class Main {
 	public static Config config;
 
 	@SideOnly(Side.CLIENT)
+	public static final Logger logger = LogManager.getLogger(Main.modid);
+
 	@EventHandler
 	public static void init(FMLPreInitializationEvent event) {
 		Framebuffer buffer = minecraft.getFramebuffer();
